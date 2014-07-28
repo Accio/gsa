@@ -72,12 +72,14 @@ StringVec split(const string& s) {
 void readLine(const string& s, GeneStats& gss) {
   double val;
   StringVec ret=split(s);
+  char *err;
+  
   if(ret.size()==2) {
-    try {
-      val=std::stod(ret[1]); // C++11 specific code
+    val = strtod(ret[1].c_str(), &err);
+    if(*err == 0) {
       GeneStat gs(ret[0], val);
       gss.push_back(gs);
-    } catch(std::exception &e) {
+    } else {
       cout << "Ignored line: " << s << "\n";
     }
   } else {
@@ -105,8 +107,8 @@ int main(int argc, char** argv) {
   string statfile("simulated-diffstats.txt");
   string gmtfile("simulated-genesets.gmt");
   string line;
-  int i;
-  //const int NPERM=1000;
+  // int i;
+  // const int NPERM=1000;
 
   GeneStats gss;
   GeneSets gsets;
