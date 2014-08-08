@@ -1,8 +1,9 @@
+
 test-gseap: gseap-prototype simulated-diffstats.txt simulated-genesets.txt
 	./gseap-prototype
 
 gseap-prototype:gseap-prototype.cpp genestat.cpp genestat.h geneset.h
-	$(CXX) -Wall gseap-prototype.cpp genestat.cpp geneset.cpp -o gseap-prototype 
+	$(CXX) $(CXXFLAGS) -Wall gseap-prototype.cpp genestat.cpp geneset.cpp -o gseap-prototype 
 
 
 simulated-diffstats.txt simulated-genesets.txt: generate-data

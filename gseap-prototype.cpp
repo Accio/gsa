@@ -1,6 +1,7 @@
 // a prototype C++ program of the GSEA-Prerank algorithm
 
 #include <vector>
+#include <list>
 #include <set>
 #include <iostream>
 #include <fstream>
@@ -17,8 +18,6 @@ using namespace std;
 typedef std::vector<std::string> StringVec;
 typedef StringVec GeneNames;
 typedef std::vector<double> Stats;
-typedef std::vector<GeneStat> GeneStats;
-typedef std::vector<GeneSet> GeneSets;
 
 bool issquote(const char &c) {
   return(isspace(c) || c=='"' || c=='\'');
@@ -143,6 +142,9 @@ int main(int argc, char** argv) {
   log("Rank genes");
   std::sort(gss.begin(), gss.end(), descCompGeneStat);
 
+  // set indices
+  log("Set indices");
+  setIndices(gsets, gss);
   // random shuffle gene symbols
   // log("Gene permutation");
   // std::srand(unsigned (std::time(0)));
