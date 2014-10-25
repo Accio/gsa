@@ -1,6 +1,7 @@
 // a prototype C++ program of the GSEA-Prerank algorithm
 
 #include <vector>
+#include <list>
 #include <set>
 #include <iostream>
 #include <fstream>
@@ -17,8 +18,6 @@ using namespace std;
 typedef std::vector<std::string> StringVec;
 typedef StringVec GeneNames;
 typedef std::vector<double> Stats;
-typedef std::vector<GeneStat> GeneStats;
-typedef std::vector<GeneSet> GeneSets;
 
 bool issquote(const char &c) {
   return(isspace(c) || c=='"' || c=='\'');
@@ -72,12 +71,14 @@ StringVec split(const string& s) {
 void readLine(const string& s, GeneStats& gss) {
   double val;
   StringVec ret=split(s);
+  char *err;
+  
   if(ret.size()==2) {
-    try {
-      val=std::stod(ret[1]); // C++11 specific code
+    val = strtod(ret[1].c_str(), &err);
+    if(*err == 0) {
       GeneStat gs(ret[0], val);
       gss.push_back(gs);
-    } catch(std::exception &e) {
+    } else {
       cout << "Ignored line: " << s << "\n";
     }
   } else {
@@ -105,8 +106,8 @@ int main(int argc, char** argv) {
   string statfile("simulated-diffstats.txt");
   string gmtfile("simulated-genesets.gmt");
   string line;
-  int i;
-  //const int NPERM=1000;
+  // int i;
+  // const int NPERM=1000;
 
   GeneStats gss;
   GeneSets gsets;
@@ -141,6 +142,9 @@ int main(int argc, char** argv) {
   log("Rank genes");
   std::sort(gss.begin(), gss.end(), descCompGeneStat);
 
+  // set indices
+  log("Set indices");
+  setIndices(gsets, gss);
   // random shuffle gene symbols
   // log("Gene permutation");
   // std::srand(unsigned (std::time(0)));

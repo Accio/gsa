@@ -9,6 +9,15 @@ bool descCompGeneStat(const GeneStat& i,const GeneStat& j) {
 void GeneStat::print() {
   cout << _id << ":" << _stat << "\n";
 }
+
+StringVec accs(const GeneStats& gss) {
+  StringVec res;
+  GeneStats::const_iterator it;
+  for(it=gss.begin();it<gss.end();++it) {
+    res.push_back(it->acc());
+  }
+  return(res);
+}
 /*
 int main() {
   GeneStat gs=GeneStat("ABC", 3.25);
