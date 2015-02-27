@@ -21,3 +21,9 @@ filter-invalid:withinvalid-diffstats.txt
 
 filter_rnk:filter_rnk.c
 	$(CC) $(BIOSINC)  filter_rnk.c -o filter_rnk $(BIOSKERNLNK)
+
+run-filter_rnk:filter_rnk
+	./filter_rnk
+
+filter_and_collapse:filter_rnk withinvalid-diffstats.txt
+	./filter_rnk | sort -r -k 2 -n | sort -u -k 1,1 | sort -r -k 2 -n ## tak the largest statistics (not the largest absolute value)
