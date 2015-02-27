@@ -24,7 +24,7 @@ void destroyNVPair(NVPair pair) {
   }
 }
 
-void printNVPairList(const NVPairArray pairArray) {
+void printNVPairArray(const NVPairArray pairArray) {
   int i;
   NVPair p;
   for(i=0;i<arrayMax(pairArray);i++) {
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
   
   sortAndCollapse(stats);
 
-  printNVPairList(stats);
+  printNVPairArray(stats);
 
   destroyNVPairArray(stats);
   
