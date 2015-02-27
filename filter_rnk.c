@@ -7,33 +7,33 @@
 typedef struct {
   char* id;
   double value;
-} PairStruct, *Pair;
-typedef Array PairArray;
+} NVPairStruct, *NVPair;
+typedef Array NVPairArray;
 
-Pair newPair(const char* id, double value) {
-  Pair p = (Pair)malloc(sizeof(PairStruct));
+NVPair newNVPair(const char* id, double value) {
+  NVPair p = (NVPair)malloc(sizeof(NVPairStruct));
   p->id = hlr_strdup((char*)id);
   p->value=value;
   return(p);
 }
 
-void destroyPair(Pair pair) {
+void destroyNVPair(NVPair pair) {
   if(pair) {
     pair->id=NULL;
     free(pair);
   }
 }
 
-void printPairList(const PairArray pairArray) {
+void printNVPairList(const NVPairArray pairArray) {
   int i;
-  Pair p;
+  NVPair p;
   for(i=0;i<arrayMax(pairArray);i++) {
-    p=array(pairArray, i, Pair);
+    p=array(pairArray, i, NVPair);
     printf("%s\t%f\n", p->id, p->value);
   }
 }
 
-static int sortIDandAbsval(Pair *p1, Pair *p2) {
+static int sortIDandAbsval(NVPair *p1, NVPair *p2) {
   int compid;
   int compabsval;
   
@@ -46,17 +46,17 @@ static int sortIDandAbsval(Pair *p1, Pair *p2) {
   }
 }
 
-void sortAndCollapse(PairArray pairArray) {
+void sortAndCollapse(NVPairArray pairArray) {
   char* lastID;
   int i;
-  Pair p;
+  NVPair p;
 
   arraySort(pairArray, (ARRAYORDERF)sortIDandAbsval);
 
-  lastID=arru(pairArray, 0, Pair)->id;
+  lastID=arru(pairArray, 0, NVPair)->id;
   
   for(i=1;i<arrayMax(pairArray); i++) {
-    p=array(pairArray, i, Pair);
+    p=array(pairArray, i, NVPair);
     if(strcmp(p->id, lastID)==0) {
       arrayRemoveD(pairArray, i--);
     } else {
@@ -65,57 +65,78 @@ void sortAndCollapse(PairArray pairArray) {
   }
 }
 
-void destroyPairArray(PairArray pairArray) {
+void destroyNVPairArray(NVPairArray pairArray) {
   int i;
-  Pair p;
+  NVPair p;
   
   for(i=0;i<arrayMax(pairArray);i++) {
-    destroyPair(array(pairArray, i, Pair));
+    destroyNVPair(array(pairArray, i, NVPair));
   }
 
   arrayDestroy(pairArray);
 }
 
-int main(int argc, char* argv[]) {
-  char* rnkFile = "withinvalid-diffstats.txt";
+void parseRnk(const LineStream ls, 
+	      NVPairArray pairArray,
+	      Texta invalid) {
   char* line;
-  
-  char* statstr;
-  char* nptr;
-  double stat;
-
-  LineStream ls = ls_createFromFile(rnkFile);
   Texta it;
+  char* statstr;
+  double stat;
+  char* nptr;
+  NVPair p;
 
-  Array stats = arrayCreate(128, Pair);
-  Array outstats=arrayCreate(128, Pair);
-  Pair p;
-
-  int i;
-  
   while(line=ls_nextLine(ls)) {
     it = textStrtokP(line, "\t ");
     if(arrayMax(it)==2) {
       statstr=textItem(it, 1);
-      double stat = strtod(statstr, &nptr);
+      stat = strtod(statstr, &nptr);
       if(isvalid(stat) & statstr != nptr) {
-	p = newPair(textItem(it, 0), stat);
-	array(stats, arrayMax(stats), Pair)=p;
+	p = newNVPair(textItem(it, 0), stat);
+	array(pairArray, arrayMax(pairArray), NVPair)=p;
       } else {
-	fprintf(stderr, "[Discarding line] %s\n", line);
+	if(invalid!=NULL) {
+	  textAdd(invalid, line);
+	}
       }
     }
   }
 
+  textDestroy(it);
+}
+
+void parseRnkFile(const char* filename,
+		  NVPairArray pairArray,
+		  Texta invalid) {
+  LineStream ls;
+
+  ls = ls_createFromFile((char*)filename);
+  parseRnk(ls, pairArray, invalid);
+  ls_destroy(ls);
+}
+
+int main(int argc, char* argv[]) {
+  char* rnkFile = "withinvalid-diffstats.txt";
+  Array stats = arrayCreate(128, NVPair);
+  Texta invalid = textCreate(128);
+
+  parseRnkFile(rnkFile, stats, invalid);
+
+  if(arrayMax(invalid)>0) {
+    int i=0;
+    for(i=0;i<arrayMax(invalid);++i)
+      fprintf(stderr, "[Discarded invalid line]:%s\n", textItem(invalid, i));
+  }
+  
   if(arrayMax(stats)==0)
     die("No genes left");
-
+  
   sortAndCollapse(stats);
 
-  printPairList(stats);
+  printNVPairList(stats);
 
-  destroyPairArray(stats);
-  ls_destroy(ls);
-  textDestroy(it);
+  destroyNVPairArray(stats);
+  
+  textDestroy(invalid);
   return 0;
 }
